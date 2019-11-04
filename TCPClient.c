@@ -45,6 +45,7 @@ int receiveExpectedSequenceNumber(int sockfd, int expectedSequenceNumber) {
 void sendAcknowledgement(int sockfd, struct sockaddr_in *servaddr, int sequenceNumber) {
 
     if (isTimeout == 1 && sequenceNumber == 2) {
+        printf("start timeout in client side \n");
         clock_t begin = clock();
         while (1) {
             double cpu_time_used = ((double) (clock() - begin)) / CLOCKS_PER_SEC;
@@ -95,7 +96,7 @@ int main(int argc, char **argv) {
     int expectedSequenceNumber = ISN;
     int state = 0;
     unordered = 0;
-    isTimeout = 1;
+    isTimeout = 0;
     while (1) {
 
         state = receiveExpectedSequenceNumber(sockfd, expectedSequenceNumber);

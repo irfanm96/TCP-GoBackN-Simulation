@@ -22,6 +22,8 @@ int currentWindow[WINDOW_SIZE];
 
 int isTimeout = 0;
 
+int timeoutDemo = 0;
+
 void msleep(long msec) {
     struct timespec ts;
     int res;
@@ -170,10 +172,13 @@ int main(int argc, char **argv) {
         return 1;
 
     }
-    /* create a second thread which checks timeout */
-    if (pthread_create(&timeout_thread, NULL, checkTimeout, NULL)) {
-        fprintf(stderr, "Error creating thread for timeout check\n");
-        return 1;
+
+    if (timeoutDemo == 1) {
+        /* create a second thread which checks timeout */
+        if (pthread_create(&timeout_thread, NULL, checkTimeout, NULL)) {
+            fprintf(stderr, "Error creating thread for timeout check\n");
+            return 1;
+        }
     }
 
 
@@ -194,7 +199,7 @@ int main(int argc, char **argv) {
 
     }
 
-    while (1){
+    while (1) {
 
     }
 
