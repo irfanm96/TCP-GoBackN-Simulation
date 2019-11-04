@@ -1,0 +1,3 @@
+/home/irfan/Desktop/TCP/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/irfan/Desktop/TCP/cmake-build-debug/CMakeFiles/TCP.dir
+/home/irfan/Desktop/TCP/cmake-build-debug/CMakeFiles/edit_cache.dir

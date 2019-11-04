@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/TCP.dir/main.c.o CMakeFiles/TCP.dir/TCPClient.c.o CMakeFiles/TCP.dir/TCPServer.c.o  -o TCP 
