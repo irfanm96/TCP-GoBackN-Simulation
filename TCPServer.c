@@ -16,6 +16,9 @@ struct sockaddr_in servaddr, cliaddr;
 socklen_t clilen;
 
 
+clock_t timeout[WINDOW_SIZE];
+int currentWindow[WINDOW_SIZE];
+
 void msleep(long msec) {
     struct timespec ts;
     int res;
@@ -25,7 +28,24 @@ void msleep(long msec) {
     res = nanosleep(&ts, &ts);
 }
 
-void sendInitialSequenceNumber(int connfd, struct sockaddr_in *cliaddr, int ISN) {
+void shiftWindow() {
+
+    for (int i = 0; i < WINDOW_SIZE - 1; ++i) {
+        currentWindow[i] = currentWindow[i + 1];
+    }
+
+    currentWindow[WINDOW_SIZE - 1] = nextseqnum ;
+
+
+    for (int j = 0; j < WINDOW_SIZE; ++j) {
+        printf(" %d ", currentWindow[j]);
+    }
+    printf("\n");
+
+
+}
+
+void sendInitialSequenceNumber(int ISN) {
     char str[10];
     sprintf(str, "%d", ISN);
     sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
@@ -59,7 +79,7 @@ void *receiveAcknowledgement() {
             buffer[5] = 0;
             number = extractACKNumber(buffer);
             printf("Received ACK # %d \n", number);
-
+            shiftWindow();
         }
         buffer[n] = 0;
 
@@ -92,12 +112,10 @@ int main(int argc, char **argv) {
     connfd = accept(listenfd, (struct sockaddr *) &cliaddr,
                     &clilen); // the uninitialized cliaddr variable is filled in with the
 
-    sendInitialSequenceNumber(connfd, &cliaddr, 0);
+    sendInitialSequenceNumber( 0);
 
 
     char str[10];
-    clock_t timeout[WINDOW_SIZE];
-    int currentWindow[WINDOW_SIZE];
     pthread_t inc_x_thread;
 
 
@@ -118,6 +136,7 @@ int main(int argc, char **argv) {
         nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
         msleep(100);
     }
+
 
 
     if (pthread_join(inc_x_thread, NULL)) {

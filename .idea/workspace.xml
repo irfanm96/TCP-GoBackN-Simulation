@@ -12,7 +12,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b00748dc-3588-4947-90b9-2d0370bc6f3e" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/TCPClient.c" beforeDir="false" afterPath="$PROJECT_DIR$/TCPClient.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TCPServer" beforeDir="false" afterPath="$PROJECT_DIR$/TCPServer" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TCPServer.c" beforeDir="false" afterPath="$PROJECT_DIR$/TCPServer.c" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -71,7 +73,7 @@
       <option name="presentableId" value="Default" />
       <updated>1571910533084</updated>
       <workItem from="1571910534798" duration="5440000" />
-      <workItem from="1572840304831" duration="10531000" />
+      <workItem from="1572840304831" duration="11950000" />
     </task>
     <servers />
   </component>
