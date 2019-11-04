@@ -11,7 +11,7 @@
 #define MAX_SEQ_NUM 8
 
 int unordered = 0;
-int isTimeout = 0;
+int isTimeout = 1;
 
 int receiveInitialSequenceNumber(int sockfd) {
     char buffer[2];
@@ -95,8 +95,6 @@ int main(int argc, char **argv) {
 
     int expectedSequenceNumber = ISN;
     int state = 0;
-    unordered = 0;
-    isTimeout = 0;
     while (1) {
 
         state = receiveExpectedSequenceNumber(sockfd, expectedSequenceNumber);

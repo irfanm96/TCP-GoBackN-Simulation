@@ -22,7 +22,7 @@ int currentWindow[WINDOW_SIZE];
 
 int isTimeout = 0;
 
-int timeoutDemo = 0;
+int timeoutDemo = 1;
 
 void msleep(long msec) {
     struct timespec ts;
@@ -83,12 +83,17 @@ void *checkTimeout() {
             //timed out
             isTimeout = 1;
             printf("its timeout %f \n", cpu_time_used);
-            sprintf(str, "%d", currentWindow[0]);
-            sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
-            timeout[0] = clock();
-            printf("ReSent after timeout :%s \n", str);
-            msleep(1);
+
+            for (int i = 0; i < WINDOW_SIZE; ++i) {
+                sprintf(str, "%d", currentWindow[i]);
+                sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
+                timeout[i] = clock();
+                printf("ReSent after timeout :%s \n", str);
+                msleep(10);
+            }
             cpu_time_used = 0;
+            isTimeout = 0;
+            break;
         } else {
             isTimeout = 0;
         }
@@ -180,7 +185,6 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-
 
     for (int j = 0; j < WINDOW_SIZE; ++j) {
         currentWindow[j] = nextseqnum;
