@@ -72,7 +72,6 @@ int main(int argc, char **argv) {
 
         state = receiveExpectedSequenceNumber(sockfd, expectedSequenceNumber);
 
-
         // send ack for the received packet
         sendAcknowledgement(sockfd, &servaddr, expectedSequenceNumber);
 

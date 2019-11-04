@@ -15,6 +15,16 @@ int listenfd, connfd;
 struct sockaddr_in servaddr, cliaddr;
 socklen_t clilen;
 
+
+void msleep(long msec) {
+    struct timespec ts;
+    int res;
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    res = nanosleep(&ts, &ts);
+}
+
 void sendInitialSequenceNumber(int connfd, struct sockaddr_in *cliaddr, int ISN) {
     char str[10];
     sprintf(str, "%d", ISN);
@@ -106,11 +116,11 @@ int main(int argc, char **argv) {
         printf("Sent :%s \n", str);
         currentWindow[i] = nextseqnum;
         nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
-        sleep(1);
+        msleep(100);
     }
 
 
-    if(pthread_join(inc_x_thread, NULL)) {
+    if (pthread_join(inc_x_thread, NULL)) {
 
         fprintf(stderr, "Error joining thread\n");
         return 2;
