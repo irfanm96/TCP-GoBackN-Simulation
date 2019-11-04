@@ -5,10 +5,15 @@
 #include <string.h>
 #include <zconf.h>
 #include <time.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 #define WINDOW_SIZE 4
 #define MAX_SEQ_NUM 8
 int nextseqnum = 0;
+int listenfd, connfd;
+struct sockaddr_in servaddr, cliaddr;
+socklen_t clilen;
 
 void sendInitialSequenceNumber(int connfd, struct sockaddr_in *cliaddr, int ISN) {
     char str[10];
@@ -18,32 +23,45 @@ void sendInitialSequenceNumber(int connfd, struct sockaddr_in *cliaddr, int ISN)
 
 }
 
-int receiveAcknowledgement(int connfd, struct sockaddr_in *cliaddr, socklen_t clilen) {
+int extractACKNumber(char *str) {
+    int init_size = strlen(str);
+    char delim[] = "_";
 
-    char buffer[6];
-    int n;
+    char *ptr = strtok(str, delim);
+    ptr = strtok(NULL, delim);
 
-    if (1==1) {
+    return atoi(ptr);
+
+}
+
+void *receiveAcknowledgement() {
+
+
+    printf("thread started \n");
+    while (1) {
+        char buffer[6];
+        int n;
+
+        int number = -1;
         n = recvfrom(connfd, buffer, 6, 0, (struct sockaddr *) &cliaddr,
                      &clilen);// information of the client by recvfrom function
         if (n > 0) {
             buffer[5] = 0;
-            printf("Received %s \n", buffer);
+            number = extractACKNumber(buffer);
+            printf("Received ACK # %d \n", number);
+
         }
         buffer[n] = 0;
 
-        return 0;
     }
 
-    return -1;
+    return NULL;
+
 
 }
 
 
 int main(int argc, char **argv) {
-    int listenfd, connfd, n;
-    struct sockaddr_in servaddr, cliaddr;
-    socklen_t clilen;
     char *banner = "H";
     char buffer[1000];
 
@@ -70,6 +88,16 @@ int main(int argc, char **argv) {
     char str[10];
     clock_t timeout[WINDOW_SIZE];
     int currentWindow[WINDOW_SIZE];
+    pthread_t inc_x_thread;
+
+
+    /* create a second thread which Receives Acknowledgements */
+    if (pthread_create(&inc_x_thread, NULL, receiveAcknowledgement, NULL)) {
+
+        fprintf(stderr, "Error creating thread\n");
+        return 1;
+
+    }
 
     for (int i = 0; i < WINDOW_SIZE; ++i) {
         sprintf(str, "%d", nextseqnum);
@@ -78,8 +106,14 @@ int main(int argc, char **argv) {
         printf("Sent :%s \n", str);
         currentWindow[i] = nextseqnum;
         nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
-        fork();
-        receiveAcknowledgement(connfd, &cliaddr, clilen);
+        sleep(1);
+    }
+
+
+    if(pthread_join(inc_x_thread, NULL)) {
+
+        fprintf(stderr, "Error joining thread\n");
+        return 2;
 
     }
 

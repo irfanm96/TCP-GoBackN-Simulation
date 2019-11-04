@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <zconf.h>
 
 #define MAX_SEQ_NUM 8
 
@@ -40,7 +39,6 @@ void sendAcknowledgement(int sockfd, struct sockaddr_in *servaddr, int sequenceN
     char banner[6];
     snprintf(banner, 6, "ACK_%d", sequenceNumber);
     sendto(sockfd, banner, strlen(banner), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
-    sleep(1);
     printf("ACK sent to Packet %d \n", sequenceNumber);
 
 }
@@ -73,6 +71,7 @@ int main(int argc, char **argv) {
     while (1) {
 
         state = receiveExpectedSequenceNumber(sockfd, expectedSequenceNumber);
+
 
         // send ack for the received packet
         sendAcknowledgement(sockfd, &servaddr, expectedSequenceNumber);
