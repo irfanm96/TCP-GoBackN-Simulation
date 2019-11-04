@@ -145,6 +145,19 @@ int main(int argc, char **argv) {
     char *banner = "H";
     char buffer[1000];
 
+
+    if (argc > 2) {
+        printf("Usage : Give timeout , to simulate the corresponding feature \n Leave Blank for normal operation \n");
+    }
+
+    if (strcmp("timeout", argv[1]) == 0) {
+        timeoutDemo = 1;
+    } else {
+        printf("Invalid argument \n");
+        return -1;
+    }
+
+
     /* one socket is dedicated to listening */
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
 

@@ -77,10 +77,20 @@ int main(int argc, char **argv) {
     char banner[] = "Hello TCP server! This is client";
     char buffer[2];
 
-    if (argc != 2) {
-        printf("usage: ./%s <IP address> \n", argv[0]);
+
+    if (argc > 3) {
+        printf("Usage : Give timeout or loss ,to simulate the corresponding feature \n Leave Blank for normal operation \n");
+    }
+
+    if (strcmp("timeout", argv[2]) == 0) {
+        isTimeout = 1;
+    } else if (strcmp("loss", argv[2]) == 0) {
+        unordered = 1;
+    } else {
+        printf("Invalid argument \n");
         return -1;
     }
+
 
     /* socket to connect */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
