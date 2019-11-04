@@ -15,9 +15,12 @@ int listenfd, connfd;
 struct sockaddr_in servaddr, cliaddr;
 socklen_t clilen;
 
+int lastAcknowledged = 0;
 
 clock_t timeout[WINDOW_SIZE];
 int currentWindow[WINDOW_SIZE];
+
+int isTimeout = 0;
 
 void msleep(long msec) {
     struct timespec ts;
@@ -30,11 +33,13 @@ void msleep(long msec) {
 
 void shiftWindow() {
 
+
     for (int i = 0; i < WINDOW_SIZE - 1; ++i) {
         currentWindow[i] = currentWindow[i + 1];
     }
 
-    currentWindow[WINDOW_SIZE - 1] = nextseqnum ;
+    currentWindow[WINDOW_SIZE - 1] = nextseqnum;
+    nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
 
 
     for (int j = 0; j < WINDOW_SIZE; ++j) {
@@ -64,14 +69,39 @@ int extractACKNumber(char *str) {
 
 }
 
+
+void *checkTimeout() {
+
+    printf("timeout thread started \n");
+    char str[10];
+    double cpu_time_used = 0.00;
+    while (1) {
+        cpu_time_used = ((double) (clock() - timeout[0])) / CLOCKS_PER_SEC;
+        if (cpu_time_used > 8) {
+            //timed out
+            isTimeout = 1;
+            printf("its timeout %f \n", cpu_time_used);
+            sprintf(str, "%d", currentWindow[0]);
+            sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
+            timeout[0] = clock();
+            printf("ReSent after timeout :%s \n", str);
+            msleep(1);
+            cpu_time_used = 0;
+        } else {
+            isTimeout = 0;
+        }
+
+
+    }
+}
+
 void *receiveAcknowledgement() {
 
 
-    printf("thread started \n");
+    printf("acknowledgment thread started \n");
     while (1) {
         char buffer[6];
         int n;
-
         int number = -1;
         n = recvfrom(connfd, buffer, 6, 0, (struct sockaddr *) &cliaddr,
                      &clilen);// information of the client by recvfrom function
@@ -79,7 +109,20 @@ void *receiveAcknowledgement() {
             buffer[5] = 0;
             number = extractACKNumber(buffer);
             printf("Received ACK # %d \n", number);
-            shiftWindow();
+            if (number == 0 || number == lastAcknowledged + 1) {
+
+                if (number == 0) {
+
+                    lastAcknowledged = 0;
+                } else {
+                    lastAcknowledged = (lastAcknowledged + 1) % MAX_SEQ_NUM;
+
+                }
+                shiftWindow();
+
+            } else {
+                printf("cannot shift window \n");
+            }
         }
         buffer[n] = 0;
 
@@ -112,37 +155,46 @@ int main(int argc, char **argv) {
     connfd = accept(listenfd, (struct sockaddr *) &cliaddr,
                     &clilen); // the uninitialized cliaddr variable is filled in with the
 
-    sendInitialSequenceNumber( 0);
+    sendInitialSequenceNumber(0);
 
 
     char str[10];
-    pthread_t inc_x_thread;
+    pthread_t receive_thread;
+    pthread_t timeout_thread;
 
 
     /* create a second thread which Receives Acknowledgements */
-    if (pthread_create(&inc_x_thread, NULL, receiveAcknowledgement, NULL)) {
+    if (pthread_create(&receive_thread, NULL, receiveAcknowledgement, NULL)) {
 
-        fprintf(stderr, "Error creating thread\n");
+        fprintf(stderr, "Error creating thread for receiving acknowledgments\n");
         return 1;
 
     }
-
-    for (int i = 0; i < WINDOW_SIZE; ++i) {
-        sprintf(str, "%d", nextseqnum);
-        sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
-        timeout[i] = clock();
-        printf("Sent :%s \n", str);
-        currentWindow[i] = nextseqnum;
-        nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
-        msleep(100);
+    /* create a second thread which checks timeout */
+    if (pthread_create(&timeout_thread, NULL, checkTimeout, NULL)) {
+        fprintf(stderr, "Error creating thread for timeout check\n");
+        return 1;
     }
 
 
+    for (int j = 0; j < WINDOW_SIZE; ++j) {
+        currentWindow[j] = nextseqnum;
+        nextseqnum = (nextseqnum + 1) % MAX_SEQ_NUM;
+    }
 
-    if (pthread_join(inc_x_thread, NULL)) {
+    if (isTimeout != 1) {
+        for (int i = 0; i < WINDOW_SIZE; ++i) {
+            sprintf(str, "%d", currentWindow[0]);
+            sendto(connfd, str, strlen(str), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
+            timeout[i] = clock();
+            printf("Sent :%s \n", str);
+            msleep(1000);
 
-        fprintf(stderr, "Error joining thread\n");
-        return 2;
+        }
+
+    }
+
+    while (1){
 
     }
 
